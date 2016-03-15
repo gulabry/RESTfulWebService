@@ -398,7 +398,7 @@ app.post('/createUser', function(req, res) {
     
 });
 
-app.delete('/account/:accountId', authenticate, function(req, res) {
+app.delete('/account', authenticate, function(req, res) {
     //if user is the owner of the account, delete it
     
     Account.scan().where('owner').equals(session.user.email).exec(function(err, accounts) {
