@@ -400,30 +400,26 @@ app.post('/createUser', function(req, res) {
 
 app.delete('/account/:accountId', authenticate, function(req, res) {
     //if user is the owner of the account, delete it
-        Account.get(accountId, function(err, account) {
-            //if the current account logged in wants to delete an account, let them! 
-            var ownerEmail = account.get('owner');
-            //if the account balance is 0 and it's not the primary account, you can delete it
-            if (ownerEmail == session.user.email && account.get('currentBalance') == 0 && account.get('name') != 'Primary') { 
-                Account.destroy(accountId, function(err) {
-                    if (err) {
+    
+    Account.scan().where('owner').equals(session.user.email).exec(function(err, accounts) {
+        
+        for (var i = 0; i < accounts.Items.length; i++) {
+            var singleAccount = accounts.Items[i];
+            if (singleAccount.get('name') == req.body.accountName && singleAccount.get('currentBalance') == 0 && singleAccount.get('name') != 'Primary') {
+                Account.destroy(accounts.Items[i].get('accountId'), function(err) {
+                     if (err) {
                         console.log("Error deleting account: " + err);
+                        res.status(500).json({message: "deleted account fail " + err});
                     } else {
-                        console.log("Deleted account " + accountId);
+                        res.status(200).json({message: "deleted account successful"});
+                        return;
                     }
                 });
-            } else {
-                if (account.get('currentBalance') != 0 ) {
-                    res.send({message : "You can't delete an account with money in it"});
-                } else if (ownerEmail != session.user.email) {
-                    res.send({message : "You can't delete an account that's not yours"});
-                } else if (account.get('name') == 'Primary') {
-                    res.send({message : "You can't delete your primary account"});
-                } else {
-                    res.send({message : "You cannot delete this account right now, sorry."});
-                } 
+                
             } 
-        });
+        }
+        
+    });
 });
 
 //creates a new transaction if it fits all the parameters
