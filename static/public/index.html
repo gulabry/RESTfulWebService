@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta charset="UTF-8">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <!--<link rel="stylesheet" type="text/css" href="styles.css">-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <title>Login</title>
+</head>
+<body class="container">
+    <header class="page-header">
+        <div id="result"></div> 
+        <h3>Login to Pay, Pal!</h3>
+    </header>
+        <script>
+            
+            $(function(){  
+                $("loginForm").submit(function() {
+                        $.ajax({
+                            url: '/signin/local',
+                            type: "POST",
+                            data: $("#loginForm").serialize(),
+                            success: function(response){
+                                //alert(JSON.stringify(response));
+                            }
+                        });
+                });
+             });
+
+        </script>
+
+    <div class="jumbotron">
+        
+            <h1>Welcome to Pay, Pal!</h1>
+            
+            <form action="/signin/local" id="loginForm" method="post"> 
+                <p><input name="username" type="text" class="form-control" placeholder="Email"></p>
+                <p><input name="password" type="password" class="form-control" placeholder="Password"></p>
+
+                <button type="submit" class="btn btn-info">Sign In</button>
+                
+                <a href="/signup" id="signin" class="btn btn-default">Sign Up</a>
+                <a href="signin/facebook" class="btn btn-primary">Sign In with Facebook</a>
+            </form>
+        </div>
+
+</body>
+</html>

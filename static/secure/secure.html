@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <title>Secure</title>
+</head>
+<body class="container">
+    <header class="page-header"> 
+        <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" id="welcome"></a>
+            </div>
+            
+            <div class="navbar-form navbar-right">
+                <button id="showProfile" class="btn btn-success">Show Profile</button>
+                <a href="/signout" ><button class="btn btn-danger">Sign Out</button></a>
+            </div>
+        </div>
+</nav>
+    </header>
+        <script>
+            $(function(){
+               var xhttp = new XMLHttpRequest();
+               xhttp.open("GET", "/getCurrentUser", false);
+               xhttp.send();
+               
+               var userObject = JSON.parse(xhttp.responseText);
+               console.log(userObject);
+               
+               document.getElementById("welcome").innerHTML = "Welcome back, " + userObject.email;
+               
+               var accountRequest = new XMLHttpRequest();
+               accountRequest.open("GET", "/accounts", false);
+               accountRequest.send();
+               
+                var accounts = JSON.parse(accountRequest.responseText);
+                // document.getElementById("userAccounts").innerHTML = JSON.stringify(accounts);
+                
+                var allAccounts = "";
+                for (var i = 0; i < accounts.length; i++) {
+                    allAccounts += "Name: " + accounts[i].name + " Current Balance: " + accounts[i].currentBalance + " ";
+                }
+                
+                document.getElementById("userAccounts").innerHTML = allAccounts;
+              
+
+                $("#profileData").hide();
+                $("#editProfileData").hide();
+                    
+                $("#showProfile").click(function(){
+                    $("#profileData").show();
+                    $("#editProfileData").hide();
+                    
+                    console.log(JSON.stringify("http://www.gravatar.com/avatar/" + userObject.imageHash));
+                    $("#profileImage").attr("src", "http://www.gravatar.com/avatar/" + userObject.imageHash);
+                    
+                    document.getElementById("email").innerHTML = "Email: " + userObject.email;
+
+                });
+                
+                $("#hideProfile").click(function() {
+                    $("#profileData").hide();
+                });
+                
+                $("#editProfile").click(function() {
+                    $("#profileData").hide();
+                    $("#editProfileData").show();
+                });
+                
+                $("#cancelEdit").click(function() {
+                    $("#profileData").show();
+                    $("#editProfileData").hide();
+                });
+                
+                $("changeProfile").submit(function(event) {
+                    event.preventDefault();
+                    changeProfileData();
+                    return false;
+                });
+                
+                function changeProfileData() {
+                    $.post("/updateUser",
+                    {
+                      newEmail : this.email,
+                      currentPassword : this.currentPassword, 
+                      newPassword : this.newPassword, 
+                      newPasswordConfirm : this.newPasswordConfirm 
+                    },function(data) {
+                        $("#profileData").show();
+                        $("#editProfileData").hide();
+                        // $.get('/secure');
+                    });
+                }
+                
+             }); 
+             
+
+        </script>
+        
+        <div class="row">
+            <div class="col-xs-12">
+                <h2>Accounts</h2>
+                <div>
+                    <h4 id='userAccounts'></h4>
+                </div>
+                <h2>Transfer Funds</h2>
+                <div class="input-group" class="col-xs-12">
+                    
+                    <form method="post" action="/transaction/create" >
+                    <h3>From Account:</h3>
+                    <p><input name="fromAccount" type="text" class="form-control" placeholder="Your Account Name"></p>
+                    <h3>Amount to Send:</h3>
+                    <p><input name="sendAmount" type="text" class="form-control" placeholder="Amount to Send"></p>
+                    
+                    <h3>To Account:</h3>
+                    <p><input  name="toAccountEmail" type="text" class="form-control" placeholder="Recipient's Email"></p>
+                    <p><input  name="toAccount" type="text" class="form-control" placeholder="Account Name (optional)"></p>
+                    <button id="sendMoney" type="submit" class="btn btn-primary">Send Money</button>
+                    </form>
+                    
+                </div>
+                <h2>Delete Account</h2>
+                <div class="input-group" class="col-xs-12">
+                    
+                    <form method="delete" action="/account" >
+                    <h3>From Account:</h3>
+                    <p><input name="fromAccount" type="text" class="form-control" placeholder="Your Account Name"></p>
+                    <h3>Amount to Send:</h3>
+                    <p><input name="sendAmount" type="text" class="form-control" placeholder="Amount to Send"></p>
+                    
+                    <h3>To Account:</h3>
+                    <p><input  name="toAccountEmail" type="text" class="form-control" placeholder="Recipient's Email"></p>
+                    <p><input  name="toAccount" type="text" class="form-control" placeholder="Account Name (optional)"></p>
+                    <button id="sendMoney" type="submit" class="btn btn-primary">Send Money</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-xs-12">
+                <div id="profileData" class="col-xs-12">
+                    <h3>Profile</h3>
+                        <a href="#" class="thumbnail">
+                            <img id="profileImage" src="http://www.gravatar.com/avatar/" alt="Gravatar">
+                        </a>
+                    <ul>
+                        <li id="email"></li>
+                    </ul>
+                    
+                    <button id="hideProfile" class="btn btn-danger">Hide</button>
+                    <button id="editProfile" class="btn btn-primary">Edit</button>
+                </div>
+                <div id="editProfileData" class="col-xs-12">
+                    <h3>Edit Email</h3>
+                    <form method="post" action="/updateUser" > 
+                        <p><input name="email" type="text" class="form-control" placeholder="Update Email"></p>
+                        <h3>Change Password</h3>
+                        <p><input name="currentPassword" type="password" class="form-control" placeholder="Current Password"></p>
+                        <p><input name="newPassword" type="password" class="form-control" placeholder="New Password"></p>
+                        <p><input name="newPasswordConfirm" type="password" class="form-control" placeholder="New Password Confirm"></p>
+                        <a id="cancelEdit" class="btn btn-danger">Cancel</a>
+                        <button id="changeProfile" type="submit" class="btn btn-primary">Change Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+</body>
+</html>
